@@ -1,0 +1,270 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../google-map/google-map.html">
+<link rel="import" href="../google-map/google-map-directions.html">
+<link rel="import" href="google-map-nearby-search.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-card/paper-card.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../paper-checkbox/paper-checkbox.html">
+
+<dom-module id="t-hotel-map">
+	<template>
+		<style include="iron-flex">
+		:host {
+			font-family: 'Roboto';
+			position: fixed;
+			height:calc(100vh - 120px);
+			display: block;
+			width:calc(100vw - 	40px);
+			max-width: 1200px;
+			padding: 60px 20px ;
+			left: 50%;
+			background: black;
+			transform: translateX(-50%);
+		}
+		paper-menu-button{
+			padding:0
+		}
+		.toolbar paper-button{
+			background: #eaeaea;
+		}
+		.container{
+			height: 100%;
+			padding: 0 20px;
+		}
+		.map-container{
+			position: relative;
+		}
+		.place-list{
+			width: 275px;
+			background: #eaeaea;
+			height:100%;
+			overflow-x: hidden;
+			overflow-y: auto;
+		}
+		google-map {
+			display: block;
+			height: 100%;
+		}
+		paper-card {
+			z-index: 1;
+		}
+		.map-view{
+			position: relative;
+		}
+		.toolbar{
+			position: absolute;
+			top: 10px;
+			z-index: 1;
+			left: 10px;
+		}
+		.header{
+			padding: 22px 24px;
+			height: 70px;
+			background: #fff;
+		}
+		h1{
+			margin: 0;
+		}
+		google-map-directions{
+			display: block;
+		}
+		</style>
+
+		<div class="container layout vertical">
+			<div class="header layout horizontal">
+				<div class="flex">
+					<h1> jsdf df dfd </h1>
+					<p> jsdf df dfd </p>
+				</div>
+				<div><paper-button raised class="indigo"> Reserve Now</paper-button></div>
+			</div>
+			<div class="map-container layout horizontal flex">
+				<template is="dom-if" if="[[currentFilters.length]]">
+					<div class="place-list">
+						<h1>Point of Interest</h1>
+						<ul>
+						<template is="dom-repeat" items="{{currentFilters}}" >
+							<template is="dom-repeat" items="{{_getPlaces(item)}}" as="marker">
+							<li>[[marker.name]]</li>
+							</template>
+						</template>
+					</ul>
+					</div>
+				</template>
+				<div class="flex map-view">
+					<div class="toolbar">
+			<paper-menu-button>
+				<paper-button  icon="menu" slot="dropdown-trigger" class="indigo" raised>What's Nearby</paper-button>
+				<paper-listbox slot="dropdown-content">
+					<template is="dom-repeat" items="[[_placeTypes]]">
+						<paper-item role="menuitemcheckbox">
+							<paper-checkbox on-change="_placeListChanged">[[item.label]]</paper-checkbox>
+						</paper-item>
+					</template>
+				</paper-listbox>
+			</paper-menu-button>
+			<paper-button  icon="menu" on-tap="_setCenter" class="indigo" raised>Hotel</paper-button>
+			<paper-menu-button>
+				<paper-button  icon="menu" slot="dropdown-trigger" class="indigo" raised>Directions</paper-button>
+				<paper-listbox slot="dropdown-content">
+					<paper-card elevation="2">
+						<paper-item>
+							<paper-input label="Start address" value="{{start}}">
+								<iron-icon icon="search" slot="prefix"></iron-icon>
+							</paper-input>
+						</paper-item>
+						<paper-item>
+							<paper-input label="End address" value="{{end}}">
+								<iron-icon icon="search" slot="prefix"></iron-icon>
+							</paper-input>
+						</paper-item>
+					</paper-card>
+
+				</paper-listbox>
+			</paper-menu-button>
+		</div>
+					<google-map-nearby-search on-google-map-nearby-search-results="_onPlaceFilter" map="[[map]]"  radius="5000" results="{{_results}}" types="[[_placesToFilter]]"> </google-map-nearby-search>
+					<google-map id="map" map="{{map}}" latitude="[[latLng.latitude]]" longitude="[[latLng.longitude]]"
+					api-key="[[apiKey]]" disable-default-ui zoom="13">
+					<template is="dom-repeat" items="{{currentFilters}}" >
+						<template is="dom-repeat" items="{{_getPlaces(item)}}" as="marker">
+							<google-map-marker animation="drop" latitude="{{marker.latitude}}" icon="[[marker.icon]]" longitude="{{marker.longitude}}">
+							<h2>{{marker.name}}</h2>
+							<span>{{marker.formatted_address}}</span>
+						</google-map-marker>
+					</template>
+				</template>
+				<google-map-marker animation="drop" latitude="[[latLng.latitude]]" longitude="[[latLng.longitude]]"/>
+			</google-map>
+		</div>
+
+
+
+
+
+	</div>
+</div>
+
+</template>
+
+<script>
+
+class THotelMap extends Polymer.Element {
+
+	static get is() { return 't-hotel-map'; }
+
+	static get properties() {
+		return {
+			apiKey: {
+				type: String,
+				value: 'AIzaSyCT5zC7NQ1lzgAzPPu5W0jycrHkI-rYuB8'
+			},
+			start:{
+				type: String,
+				value: 'San Francisco'
+			},
+			_mapCenter: Object,
+			end: {
+				type: String,
+				value:'Mountain View'
+			},
+			_results: {
+				type: Array,
+				value: []
+			},
+			latLng: {
+				type: Object,
+				value: function(){
+					return {
+						latitude:-33.8665433,
+						longitude:151.1956316
+					}
+				}
+			},
+			_placesToFilter:{
+				type: Array,
+				value: []
+			},
+			placesToShow:{
+				type: Object,
+				value: {}
+			},
+			currentFilters: {
+				type: Array,
+				value: []
+			},
+			_placeTypes: {
+				type: Array,
+				value: function(){
+					return [
+						{ label : "Airport", icon: "maps:local-airport", list: ["airport"]},
+						{ label : "Bank", icon: "maps:local-atm", list: ["atm", "bank"]},
+						{ label : "Entertainment", icon: "maps:local-movies", list: ["amusement_park", "aquarium", "art_gallery", "bowling_alley", "casino", "movie_theater", "zoo"]},
+						{ label : "Food", icon: "maps:restaurant", list: ["cafe", "food", "restaurant"]},
+						{ label : "Health & Wellness", icon: "maps:local-pharmacy", list: ["beauty_salon", "gym", "health", "pharmacy", "spa"]},
+						{ label : "Nightlife", icon: "maps:local-bar", list: ["bar", "casino", "night_club"]},
+						{ label : "Shopping", icon: "maps:local-mall", list: ["city_hall", "clothing_store", "convenience_store", "department_store", "electronics_store", "jewelry_store", "shoe_store", "shopping_mall", "bicycle_store"]},
+						{ label : "Transport", icon: "maps:subway", list: ["bus_station", "car_dealer", "car_rental", "train_station", "taxi_stand", "travel_agency"]}
+					]
+				}
+			}
+		};
+	}
+
+	ready(){
+		super.ready();
+	}
+
+	_placeListChanged(e){
+		let isChecked = e.target.checked;
+		let placeTypes = e.model.item.list;
+		this._latestFilter = e.model.item.label;
+		if(isChecked){
+			this._placesToFilter = placeTypes;
+		}
+		else{
+			this.set('placesToShow.' + this._latestFilter , []);
+			this.push('currentFilters', this._latestFilter);
+			var latestFilter = this._latestFilter;
+			var index = this.currentFilters.findIndex( function(item) {
+				return item === latestFilter;
+			} );
+			this.splice('currentFilters', index, 1);
+			this.notifyPath('currentFilters');
+		}
+	}
+
+	_onPlaceFilter(e, detail){
+		this.set('placesToShow.' + this._latestFilter , this._results);
+		this.push('currentFilters', this._latestFilter);
+		this.notifyPath('currentFilters');
+	}
+
+	_hasFilters(currentFilters){
+		return currentFilters.length > 0;
+	}
+
+	_getPlaces(name){
+		return this.placesToShow[name]
+	}
+
+	_getMarker(type){
+		const placeType = this._placeTypes.filter(p => p.label === type)[0];
+		return placeType.icon;
+	}
+
+	_setCenter(){
+		this.map.setCenter(new google.maps.LatLng(this.latLng.latitude, this.latLng.longitude));
+		// this.resize();
+	}
+}
+
+window.customElements.define(THotelMap.is, THotelMap);
+</script>
+</dom-module>
