@@ -1,10 +1,14 @@
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../google-map/google-map.html">
+<link rel="import" href="../google-map/google-map-marker.html">
 <link rel="import" href="../google-map/google-map-directions.html">
 <link rel="import" href="google-map-nearby-search.html">
+<link rel="import" href="../paper-styles/paper-styles.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
-<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../iron-icons/maps-icons.html">
+<link rel="import" href="../iron-media-query/iron-media-query.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../paper-item/paper-item.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-card/paper-card.html">
@@ -15,8 +19,12 @@
 <dom-module id="t-hotel-map">
 	<template>
 		<style include="iron-flex">
+		.indigo{
+			background: #1976d3;
+			color: #fff;
+		}
 		:host {
-			font-family: 'Roboto';
+			font-family: 'Roboto', sans-serif;
 			position: fixed;
 			height:calc(100vh - 120px);
 			display: block;
@@ -40,8 +48,18 @@
 		.map-container{
 			position: relative;
 		}
+		.place-list ul{
+			-webkit-padding-start: 20px;
+		}
+		.place-list li{
+			font-size:14px;
+			line-height: 30px;
+		}
 		.place-list{
-			width: 275px;
+			padding: 0 20px;
+			font-size: 14px;
+			color: #929292;
+			width: 260px;
 			background: #eaeaea;
 			height:100%;
 			overflow-x: hidden;
@@ -53,6 +71,9 @@
 		}
 		paper-card {
 			z-index: 1;
+		}
+		.place-list h3{
+			font-weight: 500;
 		}
 		.map-view{
 			position: relative;
@@ -69,14 +90,44 @@
 			background: #fff;
 		}
 		h1{
+			font-weight: 400;
 			margin: 0;
 		}
 		google-map-directions{
 			display: block;
 		}
+		@media (min-width : 320px) and (max-width : 767px){
+
+			iron-icon{
+			 --iron-icon-height: 12px;
+			 --iron-icon-width: 12px;
+		 }
+			.toolbar paper-button{
+				font-size: 9px;
+				margin: 0;
+				font-weight: 700;
+			}
+			:host{
+				height: 100vh;
+				width: 100vw;
+				padding: 5px;
+			}
+			.container{
+				padding:0;
+			}
+		}
+		@media (max-width: 1024px) and (min-width: 768px){
+			.place-list{
+				width: 200px;
+			}
+		}
 		</style>
 
+		<iron-media-query query="(min-width : 320px) and (max-width : 767px)" query-matches="{{_isMobile}}"></iron-media-query>
+		<iron-media-query query="(max-width: 1024px) and (min-width: 768px)" query-matches="{{_isTablet}}"></iron-media-query>
+
 		<div class="container layout vertical">
+
 			<div class="header layout horizontal">
 				<div class="flex">
 					<h1> jsdf df dfd </h1>
@@ -86,70 +137,74 @@
 			</div>
 			<div class="map-container layout horizontal flex">
 				<template is="dom-if" if="[[currentFilters.length]]">
-					<div class="place-list">
-						<h1>Point of Interest</h1>
+					<div class="place-list" hidden$="[[_isMobile]]">
+						<h3>Point of Interest</h3>
 						<ul>
-						<template is="dom-repeat" items="{{currentFilters}}" >
-							<template is="dom-repeat" items="{{_getPlaces(item)}}" as="marker">
-							<li>[[marker.name]]</li>
+							<template is="dom-repeat" items="{{currentFilters}}" >
+								<template is="dom-repeat" items="{{_getPlaces(item)}}" as="marker">
+									<li>[[marker.name]]</li>
+								</template>
 							</template>
-						</template>
-					</ul>
+						</ul>
 					</div>
 				</template>
 				<div class="flex map-view">
 					<div class="toolbar">
-			<paper-menu-button>
-				<paper-button  icon="menu" slot="dropdown-trigger" class="indigo" raised>What's Nearby</paper-button>
-				<paper-listbox slot="dropdown-content">
-					<template is="dom-repeat" items="[[_placeTypes]]">
-						<paper-item role="menuitemcheckbox">
-							<paper-checkbox on-change="_placeListChanged">[[item.label]]</paper-checkbox>
-						</paper-item>
-					</template>
-				</paper-listbox>
-			</paper-menu-button>
-			<paper-button  icon="menu" on-tap="_setCenter" class="indigo" raised>Hotel</paper-button>
-			<paper-menu-button>
-				<paper-button  icon="menu" slot="dropdown-trigger" class="indigo" raised>Directions</paper-button>
-				<paper-listbox slot="dropdown-content">
-					<paper-card elevation="2">
-						<paper-item>
-							<paper-input label="Start address" value="{{start}}">
-								<iron-icon icon="search" slot="prefix"></iron-icon>
-							</paper-input>
-						</paper-item>
-						<paper-item>
-							<paper-input label="End address" value="{{end}}">
-								<iron-icon icon="search" slot="prefix"></iron-icon>
-							</paper-input>
-						</paper-item>
-					</paper-card>
+						<paper-menu-button>
+							<paper-button  slot="dropdown-trigger"  raised><iron-icon ></iron-icon>What's Nearby</paper-button>
+							<paper-listbox slot="dropdown-content">
+								<template is="dom-repeat" items="[[_placeTypes]]">
+									<paper-item role="menuitemcheckbox">
+										<paper-checkbox on-change="_placeListChanged">[[item.label]]</paper-checkbox>
+									</paper-item>
+								</template>
+							</paper-listbox>
+						</paper-menu-button>
+						<paper-button  on-tap="_setCenter" raised><iron-icon icon="home"></iron-icon>Hotel</paper-button>
+						<paper-menu-button>
+							<paper-button on-tap="_setupPlacesAutocomplete"  slot="dropdown-trigger" raised><iron-icon icon="maps:directions"></iron-icon>Directions</paper-button>
+							<paper-listbox slot="dropdown-content">
+								<paper-card elevation="2">
+									<paper-item>
+								    <!-- <input id="start" class="controls" type="text" placeholder="Street, City, State, Zip"> -->
+										<paper-input id="start" label="Start address" >
+											<iron-icon icon="search" slot="prefix"></iron-icon>
+										</paper-input>
+									</paper-item>
+									<paper-item>
+								    <!-- <input id="end" class="controls" type="text" placeholder="Street, City, State, Zip"> -->
+										<paper-input id="end" label="End address" >
+											<iron-icon icon="search" slot="prefix"></iron-icon>
+										</paper-input>
+									</paper-item>
+								</paper-card>
 
-				</paper-listbox>
-			</paper-menu-button>
-		</div>
+							</paper-listbox>
+						</paper-menu-button>
+					</div>
 					<google-map-nearby-search on-google-map-nearby-search-results="_onPlaceFilter" map="[[map]]"  radius="5000" results="{{_results}}" types="[[_placesToFilter]]"> </google-map-nearby-search>
 					<google-map id="map" map="{{map}}" latitude="[[latLng.latitude]]" longitude="[[latLng.longitude]]"
 					api-key="[[apiKey]]" disable-default-ui zoom="13">
 					<template is="dom-repeat" items="{{currentFilters}}" >
 						<template is="dom-repeat" items="{{_getPlaces(item)}}" as="marker">
 							<google-map-marker animation="drop" latitude="{{marker.latitude}}" icon="[[marker.icon]]" longitude="{{marker.longitude}}">
-							<h2>{{marker.name}}</h2>
-							<span>{{marker.formatted_address}}</span>
-						</google-map-marker>
+								<h2>{{marker.name}}</h2>
+								<span>{{marker.formatted_address}}</span>
+							</google-map-marker>
+						</template>
 					</template>
-				</template>
-				<google-map-marker animation="drop" latitude="[[latLng.latitude]]" longitude="[[latLng.longitude]]"/>
-			</google-map>
+					<google-map-marker animation="drop" latitude="[[latLng.latitude]]" longitude="[[latLng.longitude]]">
+								<h4>[[locationName]]</h4>
+								<span>[[locationDetails]]</span>
+					</google-map-marker>
+				</google-map>
+				<google-map-directions api-key="[[apiKey]]" map="[[map]]" start-address="[[_origin]]" end-address="[[_destination]]" ></google-map-directions>
+			</div>
+
+
+
 		</div>
-
-
-
-
-
 	</div>
-</div>
 
 </template>
 
@@ -167,16 +222,24 @@ class THotelMap extends Polymer.Element {
 			},
 			start:{
 				type: String,
-				value: 'San Francisco'
+				value: 'The Star'
 			},
 			_mapCenter: Object,
 			end: {
 				type: String,
-				value:'Mountain View'
+				value:''
 			},
 			_results: {
 				type: Array,
 				value: []
+			},
+			locationName: {
+				type: String,
+				value: 'The Star'
+			},
+			locationDetails: {
+				type: String,
+				value: ''
 			},
 			latLng: {
 				type: Object,
@@ -261,7 +324,31 @@ class THotelMap extends Polymer.Element {
 
 	_setCenter(){
 		this.map.setCenter(new google.maps.LatLng(this.latLng.latitude, this.latLng.longitude));
-		// this.resize();
+		this.$.map.resize();
+	}
+
+	_endPlaceChanged(e){
+		console.log(e);
+	}
+
+	_startPlaceChanged(e){
+		console.log(e);
+	}
+
+	_setupPlacesAutocomplete(){
+		let startAutocomplete = new google.maps.places.Autocomplete(this.$.start);
+		var hotelMap = this;
+		startAutocomplete.addListener('place_changed', function(){
+			hotelMap.$.start.value = this.getPlace().formatted_address;
+			hotelMap._origin = this.getPlace().geometry.location;
+		});
+	 startAutocomplete.bindTo('bounds', this.map);
+		let endAutocomplete = new google.maps.places.Autocomplete(this.$.end);
+		endAutocomplete.addListener('place_changed', function(){
+			hotelMap.$.end.value = this.getPlace().formatted_address;
+			hotelMap._destination = this.getPlace().geometry.location;
+		});
+		 endAutocomplete.bindTo('bounds', this.map);
 	}
 }
 
