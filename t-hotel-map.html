@@ -3,9 +3,10 @@
 <link rel="import" href="../google-map/google-map-marker.html">
 <link rel="import" href="../google-map/google-map-directions.html">
 <link rel="import" href="google-map-nearby-search.html">
+<link rel="import" href="../paper-input-place/paper-input-place.html" />
 <link rel="import" href="../paper-styles/paper-styles.html">
+<link rel="import" href="../iron-dropdown/iron-dropdown-scroll-manager.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
-<link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-icons/maps-icons.html">
 <link rel="import" href="../iron-media-query/iron-media-query.html">
@@ -35,7 +36,7 @@
 
       .close{
         position: absolute;
-        z-index: 1000;
+        /* z-index: 2; */
         right: 0;
         color: white;
         top: 0;
@@ -48,11 +49,14 @@
         position: fixed;
         top: 0;
         left: 0;
-        z-index: 999;
-        background: rgba(0,0,0,0.7);
+        /* z-index: 1; */
+        background: rgba(0,0,0,0.9);
+      }
+      .directions-container{
+        padding: 5px 20px;
       }
       .overlay{
-        z-index: 1000;
+        /* z-index: 2; */
         position: fixed;
         top: 0;
         width:calc(100vw - 	40px);
@@ -98,7 +102,7 @@
         min-height: 180px;
       }
       paper-card {
-        z-index: 1;
+        /* z-index: 1; */
       }
       .place-list h3{
         font-weight: 500;
@@ -106,10 +110,15 @@
       .map-view{
         position: relative;
       }
+      .toolbar paper-menu-button{
+        vertical-align: top;
+      }
       .toolbar{
         position: absolute;
         top: 10px;
         z-index: 1;
+        line-height: 24px;
+        height: 30px;
         left: 10px;
       }
       .header{
@@ -123,6 +132,12 @@
       }
       google-map-directions{
         display: block;
+      }
+      .toolbar paper-button{
+        font-size: 12px;
+        vertical-align:top;
+        padding: 5px;
+
       }
       @media (min-width : 320px) and (max-width : 767px){
 
@@ -167,7 +182,7 @@
 
       <template is="dom-if" if="[[!_showThumbnail]]">
         <div  class="fullscreen-overlay" on-tap="_closeMap">
-          <div  class="overlay">
+          <div class="overlay">
             <div class="container layout vertical">
               <paper-icon-button class="close" on-tap="_closeMap" icon="close" ></paper-icon-button>
               <div class="header layout horizontal">
@@ -208,28 +223,22 @@
                         <paper-button  on-tap="_setCenter" raised><iron-icon icon="home"></iron-icon>[[resources.map.center]]</paper-button>
 
                         <template is="dom-if" if="[[enableDirections]]">
+                          <!-- <paper&#45;button raised><iron&#45;icon icon="maps:directions"></iron&#45;icon>[[resources.map.directions]]</paper&#45;button> -->
                           <paper-menu-button>
                             <paper-button  slot="dropdown-trigger" raised><iron-icon icon="maps:directions"></iron-icon>[[resources.map.directions]]</paper-button>
-                            <paper-listbox slot="dropdown-content">
-                              <paper-card elevation="2">
-                                <paper-item>
-                                  <paper-input id="start" label="[[resources.map.startAddress]]" >
-                                    <iron-icon icon="search" slot="prefix"></iron-icon>
-                                  </paper-input>
-                                </paper-item>
-                                <paper-item>
-                                  <!-- <input id="end" class="controls" type="text" placeholder="Street, City, State, Zip"> -->
-                                  <paper-input id="end" label="[[resources.map.endAddress]]" >
-                                    <iron-icon icon="search" slot="prefix"></iron-icon>
-                                  </paper-input>
-                                </paper-item>
-                              </paper-card>
-                            </paper-listbox>
+                          <paper-card class="directions-container" slot="dropdown-content"  >
+                            <p>
+                            <paper-input-place hide-error id="start" label="Origin" api-key="[[apiKey]]" lat-lng="{{_origin}}"> </paper-input-place>
+                              </p>
+                            <p>
+                              <paper-input-place id="end" hide-error label="Destination" api-key="[[apiKey]]" lat-lng="{{_destination}}"> </paper-input-place>
+                              </p>
+                          </paper-card>
                           </paper-menu-button>
                         </template>
                       </div>
                       <google-map-nearby-search on-google-map-nearby-search-results="_onPlaceFilter" map="[[map]]"  radius="5000" results="{{_results}}" types="[[_placesToFilter]]"> </google-map-nearby-search>
-                      <google-map id="map" map="{{map}}" latitude="[[center.latitude]]" longitude="[[center.longitude]]" api-key="[[apiKey]]" disable-default-ui zoom="13">
+                      <google-map  id="map" map="{{map}}" latitude="[[center.latitude]]" longitude="[[center.longitude]]" api-key="[[apiKey]]" disable-default-ui zoom="13">
                         <template is="dom-repeat" items="{{currentFilters}}" >
                           <template is="dom-repeat" items="{{_getPlaces(item)}}" as="marker">
                             <google-map-marker animation="drop" latitude="{{marker.latitude}}" icon="[[_getResizedIcon(item, marker.icon)]]" longitude="{{marker.longitude}}">
@@ -348,16 +357,6 @@
             });
           }
 
-          connectedCallback(){
-            super.connectedCallback();
-            var x= this;
-            if(this.enableDirections){
-              setTimeout(function(){
-                x._setupPlacesAutocomplete();
-              }, 100);
-            }
-          }
-
           _placeListChanged(e){
             let isChecked = e.target.checked;
             let placeTypes = e.model.item.list;
@@ -410,15 +409,15 @@
           }
 
           _setupPlacesAutocomplete(){
-            if(google){
-              let startAutocomplete = new google.maps.places.Autocomplete(this.$.start);
+            if(google && this.enableDirections){
+              let startAutocomplete = new google.maps.places.Autocomplete(this.shadowRoot.querySelector('#start'));
               var hotelMap = this;
               startAutocomplete.addListener('place_changed', function(){
                 hotelMap.$.start.value = this.getPlace().formatted_address;
                 hotelMap._origin = this.getPlace().geometry.location;
               });
               startAutocomplete.bindTo('bounds', this.map);
-              let endAutocomplete = new google.maps.places.Autocomplete(this.$.end);
+              let endAutocomplete = new google.maps.places.Autocomplete(this.shadowRoot.querySelector('#end'));
               endAutocomplete.addListener('place_changed', function(){
                 hotelMap.$.end.value = this.getPlace().formatted_address;
                 hotelMap._destination = this.getPlace().geometry.location;
@@ -428,28 +427,33 @@
           }
 
           _showOverlay(){
+            window.addEventListener('scroll', this.noscroll);
             this._showThumbnail = false;
           }
 
+          noscroll() {
+            window.scrollTo( 0, 0 );
+          }
+
           _closeMap(e){
+            window.removeEventListener('scroll', this.noscroll);
             if(e.target.classList.value === 'fullscreen-overlay' || e.target.classList.value === 'close')
               this._showThumbnail = true;
-          }
-
-          _getResizedIcon(placeType,icon){
-            var placeObject = this.placeTypes.filter(p => p.label === placeType)[0];
-            return {
-              url: placeObject.icon
             }
+
+            _getResizedIcon(placeType,icon){
+              var placeObject = this.placeTypes.filter(p => p.label === placeType)[0];
+              return {
+                url: placeObject.icon
+              }
+            }
+
+            _shouldBeShown(isMobile){
+              return !this._isMobile ? this._showThumbnail : false;
+            }
+
           }
 
-          _shouldBeShown(isMobile){
-            return !this._isMobile ? this._showThumbnail : false;
-          }
-
-        }
-
-window.customElements.define(THotelMap.is, THotelMap);
-</script>
-</dom-module>
-
+          window.customElements.define(THotelMap.is, THotelMap);
+      </script>
+    </dom-module>
