@@ -49,7 +49,7 @@
         position: fixed;
         top: 0;
         left: 0;
-        /* z-index: 1; */
+        z-index: 10;
         background: rgba(0,0,0,0.9);
       }
       .directions-container{
@@ -242,8 +242,8 @@
                         <template is="dom-repeat" items="{{currentFilters}}" >
                           <template is="dom-repeat" items="{{_getPlaces(item)}}" as="marker">
                             <google-map-marker animation="drop" latitude="{{marker.latitude}}" icon="[[_getResizedIcon(item, marker.icon)]]" longitude="{{marker.longitude}}">
-                              <h2>{{marker.name}}</h2>
-                              <span>{{marker.formatted_address}}</span>
+                              <h2>[[locationName]]</h2>
+                              <span>[[locationDetails]]</span>
                             </google-map-marker>
                           </template>
                         </template>
@@ -295,8 +295,7 @@
                 value: []
               },
               locationName: {
-                type: String,
-                value: 'The Star'
+                type: String
               },
               locationDetails: {
                 type: String,
@@ -432,7 +431,9 @@
           }
 
           noscroll() {
-            window.scrollTo( 0, 0 );
+            var x=window.scrollX;
+            var y=window.scrollY;
+            window.scrollTo( x, y );
           }
 
           _closeMap(e){
