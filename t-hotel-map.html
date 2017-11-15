@@ -429,12 +429,12 @@
           }
 
           _showOverlay(){
-            document.querySelector('body').style.overflow = 'hidden';
+            document.querySelector('body').style['overflow-y'] = 'hidden';
             this._showThumbnail = false;
           }
 
           _closeMap(e){
-            document.querySelector('body').style.overflow = 'auto';
+            document.querySelector('body').style['overflow-y'] = 'auto';
             if(e.target.classList.value === 'fullscreen-overlay' || e.target.classList.value === 'close')
               this._showThumbnail = true;
             }
