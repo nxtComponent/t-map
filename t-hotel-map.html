@@ -154,8 +154,6 @@
           font-weight: 700;
         }
         :host{
-          height: 100vh;
-          width: 100vw;
           padding: 5px;
         }
         .container{
@@ -429,12 +427,12 @@
           }
 
           _showOverlay(){
-            document.querySelector('body').style['overflow-y'] = 'hidden';
+            document.querySelector('body').style.overflow = 'hidden';
             this._showThumbnail = false;
           }
 
           _closeMap(e){
-            document.querySelector('body').style['overflow-y'] = 'auto';
+            document.querySelector('body').style.overflow = 'auto';
             if(e.target.classList.value === 'fullscreen-overlay' || e.target.classList.value === 'close')
               this._showThumbnail = true;
             }
@@ -447,7 +445,7 @@
             }
 
             _shouldBeShown(isMobile){
-              return !this._isMobile ? this._showThumbnail : false;
+              return !this._isMobile ? this._showThumbnail : true;
             }
 
           }
