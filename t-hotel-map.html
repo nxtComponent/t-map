@@ -426,11 +426,8 @@
           }
 
           _showOverlay(){
-            this._showThumbnail = false;
-          }
-
-          noscroll() {
             document.querySelector('body').style.overflow = 'hidden';
+            this._showThumbnail = false;
           }
 
           _closeMap(e){
