@@ -426,18 +426,15 @@
           }
 
           _showOverlay(){
-            window.addEventListener('scroll', this.noscroll);
             this._showThumbnail = false;
           }
 
           noscroll() {
-            var x=window.scrollX;
-            var y=window.scrollY;
-            window.scrollTo( 0, 0 );
+            document.querySelector('body').style.overflow = 'hidden';
           }
 
           _closeMap(e){
-            window.removeEventListener('scroll', this.noscroll);
+            document.querySelector('body').style.overflow = 'auto';
             if(e.target.classList.value === 'fullscreen-overlay' || e.target.classList.value === 'close')
               this._showThumbnail = true;
             }
