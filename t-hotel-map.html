@@ -177,7 +177,7 @@
 
     <template is="dom-if" if="[[apiKey]]">
       <template is="dom-if" if="[[_shouldBeShown(_isMobile)]]">
-        <google-map on-tap="_showOverlay"  on-tap id="preview" api-key="[[apiKey]]" map="[[map]]" latitude="[[center.latitude]]" longitude="[[center.longitude]]">
+        <google-map fit-to-markers on-tap="_showOverlay"  on-tap id="preview" api-key="[[apiKey]]" map="[[map]]" latitude="[[center.latitude]]" longitude="[[center.longitude]]">
           <google-map-marker animation="drop" latitude="[[center.latitude]]" longitude="[[center.longitude]]">
             <h4>[[locationName]]</h4>
             <span>[[locationDetails]]</span>
@@ -243,7 +243,7 @@
                         </template>
                       </div>
                       <google-map-nearby-search on-google-map-nearby-search-results="_onPlaceFilter" map="[[map]]"  radius="5000" results="{{_results}}" types="[[_placesToFilter]]"> </google-map-nearby-search>
-                      <google-map  id="map" map="{{map}}" latitude="[[center.latitude]]" longitude="[[center.longitude]]" api-key="[[apiKey]]" disable-default-ui >
+                      <google-map fit-to-markers  id="map" map="{{map}}" latitude="[[center.latitude]]" longitude="[[center.longitude]]" api-key="[[apiKey]]" >
                         <template is="dom-repeat" items="{{currentFilters}}" >
                           <template is="dom-repeat" items="{{_getPlaces(item)}}" as="marker">
                             <google-map-marker animation="drop" latitude="{{marker.latitude}}" icon="[[_getResizedIcon(item, marker.icon)]]" longitude="{{marker.longitude}}">
@@ -314,13 +314,7 @@
                 value: false
               },
               center: {
-                type: Object,
-                value: function(){
-                  return {
-                    latitude:-33.8665433,
-                    longitude:151.1956316
-                  }
-                }
+                type: Object
               },
               _placesToFilter:{
                 type: Array,
